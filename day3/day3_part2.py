@@ -1,43 +1,26 @@
 import sys
 import re
-from typing import List
-from collections import deque
+
 command = sys.stdin.read()
 
-
-def mut_filter(command) -> List[str]:
-    pattern = r"mul\(\d+,\d+\)"
-    mut_text = re.finditer(pattern, command)
-    return [(x.start(), x.group()) for x in mut_text]
-
-def do_filter(command):
-    pattern = r"(do\(\))"
-    do_text = re.finditer(pattern, command)
-    return [(x.start(), "do") for x in do_text]
-
-def dont_filter(command):
-    pattern = r"(don't\(\))"
-    dont_text = re.finditer(pattern, command)
-    return [(x.start(), "don't") for x in dont_text]
+def extract_instructions(command):
+    pattern = r"mul\(\d+,\d+\)|do\(\)|don't\(\)"    # 어차피 순서대로 매칭됨
+    return re.finditer(pattern, command)
 
 def extract_and_multifly(mul):
-    numbers = re.match(r"mul\((\d+),(\d+)\)", mul)
-    n1, n2 = map(int, numbers.groups())
+    n1, n2 = map(int, re.findall(r"\d+", mul))
     return n1 * n2
 
-context = mut_filter(command) + do_filter(command) + dont_filter(command)
-context = sorted(context, key=lambda x: x[0])
-enabled = True # do, dont 
-q = deque(context)
 result = 0
-while q:
-    _, val = q.popleft()
-    if val == "do":
+enabled = True
+
+for match in extract_instructions(command):
+    inst = match.group()
+
+    if inst == "do()":
         enabled = True
-    elif val == "don't":
+    elif inst == "don't()":
         enabled = False
-    elif enabled:
-        result += extract_and_multifly(val)
-        
-    
+    elif enabled and inst.startswith("mul"):
+        result += extract_and_multifly(inst)
 print(result)
