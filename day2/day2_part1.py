@@ -7,11 +7,11 @@ reports = [list(map(int, report.strip().split())) for report in sys.stdin]
 def check_safe(report):
     diff = report[0] - report[1]
     is_increase = diff < 0  # init 방향 세팅
-    for prev, nxt in zip(report, report[1:]):  # zip 으로 묶이지 않은 건 잘림
+    for prev, nxt in zip(
+        report, report[1:], strict=False
+    ):  # zip 으로 묶이지 않은 건 잘림
         diff = prev - nxt
-        if not 0 < abs(diff) <= 3:
-            return False
-        if is_increase != (diff < 0):
+        if not 0 < abs(diff) <= 3 or is_increase != (diff < 0):
             return False
     return True
 
