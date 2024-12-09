@@ -19,11 +19,11 @@ def build_graph(rules):
 
 def check_valid(update, rule_graph):
     # 맨 마지막 val 제외
-    for idx, base in enumerate(update[:-1]):
-        for nxt_val in update[idx + 1 :]:
-            if nxt_val not in rule_graph[base]:
-                return False
-    return True
+    return all(
+        y in rule_graph[x]
+        for idx, x in enumerate(update[:-1])
+        for y in update[idx + 1 :]
+    )
 
 
 def sort_update(invalid_update, rule_graph):
@@ -44,6 +44,15 @@ def sum_mid(updates: List):
 # main
 rule_graph = build_graph(rules)
 invalid_updates = [x for x in updates if not check_valid(x, rule_graph)]
-sorted_updates = list(map(lambda x: sort_update(x, rule_graph), invalid_updates))
-result = sum(map(lambda x: x[len(x) // 2], sorted_updates))
+sorted_updates = [sort_update(x, rule_graph) for x in invalid_updates]
+result = sum([x[len(x) // 2] for x in sorted_updates])
 print(result)
+
+# Claude 방식
+# 가장 연결된 노드가 많은 값부터 순서대로 연결 -> 그렇게 하면 가장 선행되어야 하는 값이 맨 앞으로 올 수 있음
+# def sort_update_(invalid_update, rule_graph):
+#     # 람다 함수로 대체 가능
+#     return sorted(
+#         invalid_update,
+#         key=lambda x: (-sum(y in rule_graph.get(x, set()) for y in invalid_update), x),
+#     )
